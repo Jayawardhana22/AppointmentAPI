@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using AppointmentAPI.DTOs;
 using AppointmentAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AppointmentAPI.Controllers;
@@ -41,5 +43,21 @@ public class AuthController : ControllerBase
         {
             return BadRequest(new { Message = ex.Message });
         }
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public IActionResult Me()
+    {
+        var id   = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var email= User.FindFirstValue(ClaimTypes.Email);
+        var role = User.FindFirstValue(ClaimTypes.Role);
+
+        return Ok(new
+        {
+            Id    = int.Parse(id!),
+            Email = email,
+            Role  = role
+        });
     }
 }

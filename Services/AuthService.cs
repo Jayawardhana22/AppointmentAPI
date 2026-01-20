@@ -23,16 +23,14 @@ public class AuthService
     {
         var existingUser = await _userRepository.GetByEmailAsync(registerDto.Email);
         if (existingUser != null)
-        {
             throw new Exception("Email already in use");
-        }
 
         var user = new User
         {
-            Email = registerDto.Email,
+            Email        = registerDto.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
-            FullName = registerDto.FullName,
-            Role = registerDto.Role
+            FullName     = registerDto.FullName,
+            Role         = registerDto.Role
         };
 
         await _userRepository.AddAsync(user);
@@ -45,9 +43,7 @@ public class AuthService
     {
         var user = await _userRepository.GetByEmailAsync(loginDto.Email);
         if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
-        {
             throw new Exception("Invalid email or password");
-        }
 
         return GenerateJwtToken(user);
     }
@@ -55,16 +51,20 @@ public class AuthService
     private string GenerateJwtToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]!);
+        var key          = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]!);
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Email,          user.Email),
+                new Claim(ClaimTypes.Role,           user.Role),
+                new Claim("FullName",                user.FullName) // custom claim
             }),
-            Expires = DateTime.UtcNow.AddDays(7),
+            Expires  = DateTime.UtcNow.AddDays(7),
+            Issuer   = _configuration["Jwt:Issuer"],
+            Audience = _configuration["Jwt:Audience"],
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(key),
                 SecurityAlgorithms.HmacSha256Signature)

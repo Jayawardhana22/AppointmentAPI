@@ -175,3 +175,4 @@ D:\Personal_projects\AppointmentApp\AppointmentAPI\obj\Debug\net9.0\refint\Appoi
 D:\Personal_projects\AppointmentApp\AppointmentAPI\obj\Debug\net9.0\AppointmentAPI.pdb
 D:\Personal_projects\AppointmentApp\AppointmentAPI\obj\Debug\net9.0\AppointmentAPI.genruntimeconfig.cache
 D:\Personal_projects\AppointmentApp\AppointmentAPI\obj\Debug\net9.0\ref\AppointmentAPI.dll
+D:\Personal_projects\AppointmentApp\AppointmentAPI\obj\Debug\net9.0\AppointmentAPI.sourcelink.json

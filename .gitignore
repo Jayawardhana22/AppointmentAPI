@@ -1,0 +1,25 @@
+# Visual Studio
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet
+packages/
+
+# EF Core
+/Migrations/
+
+# Local DB
+*.mdf
+*.ldf
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

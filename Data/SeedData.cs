@@ -1,7 +1,5 @@
-using AppointmentAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using AppointmentAPI.Models;
 
 namespace AppointmentAPI.Data
@@ -13,67 +11,80 @@ namespace AppointmentAPI.Data
             using var context = new AppDbContext(
                 serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>());
 
-            // Look for any categories.
-            if (context.Categories.Any())
+            // 1. Ensure Database is Created
+            context.Database.EnsureCreated();
+
+            // 2. Add Categories (If they don't exist)
+            if (!context.Categories.Any())
             {
-                return;   // DB has been seeded
+                var categories = new Category[]
+                {
+                    new Category { Name = "Salon" },
+                    new Category { Name = "Car Service" },
+                    new Category { Name = "Healthcare" },
+                    new Category { Name = "Fitness" },
+                    new Category { Name = "Beauty" }
+                };
+                context.Categories.AddRange(categories);
+                context.SaveChanges(); // SAVE NOW to generate IDs
             }
 
-            // Add sample categories
-            var categories = new Category[]
+            // 3. Add Users (If they don't exist)
+            if (!context.Users.Any())
             {
-                new Category { Name = "Salon" },
-                new Category { Name = "Car Service" },
-                new Category { Name = "Healthcare" },
-                new Category { Name = "Fitness" },
-                new Category { Name = "Beauty" }
-            };
+                var users = new User[]
+                {
+                    new User {
+                        Email = "customer@example.com",
+                        FullName = "John Doe",
+                        Role = "Customer",
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123")
+                    },
+                    new User {
+                        Email = "owner@example.com",
+                        FullName = "Jane Smith",
+                        Role = "Owner",
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123")
+                    }
+                };
+                context.Users.AddRange(users);
+                context.SaveChanges(); // SAVE NOW to generate IDs
+            }
 
-            context.Categories.AddRange(categories);
-
-            // Add sample users
-            var users = new User[]
+            // 4. Add Shops (If they don't exist)
+            if (!context.Shops.Any())
             {
-                new User {
-                    Email = "customer@example.com",
-                    FullName = "John Doe",
-                    Role = "Customer",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123")
-                },
-                new User {
-                    Email = "owner@example.com",
-                    FullName = "Jane Smith",
-                    Role = "Owner",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123")
+                // Retrieve the actual Entities to get the real IDs
+                var owner = context.Users.FirstOrDefault(u => u.Role == "Owner");
+                var salonCategory = context.Categories.FirstOrDefault(c => c.Name == "Salon");
+                var autoCategory = context.Categories.FirstOrDefault(c => c.Name == "Car Service");
+
+                // Only add shops if we found the owner and categories
+                if (owner != null && salonCategory != null && autoCategory != null)
+                {
+                    var shops = new Shop[]
+                    {
+                        new Shop {
+                            OwnerId = owner.Id, // Use REAL ID
+                            CategoryId = salonCategory.Id, // Use REAL ID
+                            Name = "Glamour Salon",
+                            Description = "Premium hair and beauty services",
+                            Location = "123 Main St, City",
+                            OpeningHours = "9:00 AM - 6:00 PM, Mon-Fri"
+                        },
+                        new Shop {
+                            OwnerId = owner.Id, // Use REAL ID
+                            CategoryId = autoCategory.Id, // Use REAL ID
+                            Name = "Quick Fix Auto",
+                            Description = "Fast and reliable car repairs",
+                            Location = "456 Oak Ave, City",
+                            OpeningHours = "8:00 AM - 5:00 PM, Mon-Sat"
+                        }
+                    };
+                    context.Shops.AddRange(shops);
+                    context.SaveChanges();
                 }
-            };
-
-            context.Users.AddRange(users);
-
-            // Add sample shops
-            var shops = new Shop[]
-            {
-                new Shop {
-                    OwnerId = 2,
-                    CategoryId = 1,
-                    Name = "Glamour Salon",
-                    Description = "Premium hair and beauty services",
-                    Location = "123 Main St, City",
-                    OpeningHours = "9:00 AM - 6:00 PM, Mon-Fri"
-                },
-                new Shop {
-                    OwnerId = 2,
-                    CategoryId = 2,
-                    Name = "Quick Fix Auto",
-                    Description = "Fast and reliable car repairs",
-                    Location = "456 Oak Ave, City",
-                    OpeningHours = "8:00 AM - 5:00 PM, Mon-Sat"
-                }
-            };
-
-            context.Shops.AddRange(shops);
-
-            context.SaveChanges();
+            }
         }
     }
 }
